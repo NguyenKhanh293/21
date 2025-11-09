@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Thiệp sinh nhật vintage 💌</title>
+
+<!-- Font viết tay -->
+<link href="https://fonts.googleapis.com/css2?family=Dancing+Script&display=swap" rel="stylesheet">
+
+<style>
+body {
+  margin: 0;
+  overflow: hidden;
+  height: 100vh;
+  background: linear-gradient(to bottom right, #ffe6f0, #fff5f7);
+  font-family: 'Dancing Script', cursive;
+}
+
+/* Trái tim rơi */
+.heart {
+  position: fixed;
+  top: -10px;
+  color: #ff7da6;
+  animation: fall linear forwards;
+  z-index: 0;
+}
+@keyframes fall {
+  to { transform: translateY(110vh) rotate(360deg); opacity: 0; }
+}
+
+/* Phong bì */
+.envelope-container {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 260px;
+  height: 180px;
+  cursor: pointer;
+  perspective: 1000px;
+  z-index: 2;
+}
+.envelope {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  background: #fdf4e3;
+  border: 2px solid #d1bfa7;
+  border-radius: 6px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+  overflow: hidden;
+}
+.envelope::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0;
+  width: 100%; height: 50%;
+  background: #e6cfa8;
+  clip-path: polygon(0 0, 100% 0, 50% 100%);
+  transform-origin: top;
+  transition: transform 1s ease;
+}
+.seal {
+  position: absolute;
+  top: 50%; left: 50%;
+  width: 40px; height: 40px;
+  background: pink;
+  border-radius: 50%;
+  border: 3px solid #ffccd5;
+  transform: translate(-50%, -50%);
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  color: white;
+  box-shadow: 0 0 10px rgba(255,0,100,0.3);
+}
+.seal::before {
+  content: '❤';
+}
+
+/* Lá thư */
+.letter {
+  position: absolute;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%) scale(0.7);
+  width: 80vw;
+  max-width: 750px;
+  height: 70vh;
+  background: #fffaf5 url('https://i.imgur.com/NTb2LzH.png');
+  background-size: cover;
+  border: 2px solid #d1bfa7;
+  border-radius: 10px;
+  box-shadow: 0 8px 18px rgba(0,0,0,0.3);
+  opacity: 0;
+  transition: all 1.5s ease;
+  overflow: hidden;
+  z-index: 1;
+}
+.letter.open {
+  opacity: 1;
+  transform: translate(-50%, -50%) scale(1);
+  z-index: 10;
+}
+
+/* Nội dung bên trong thư */
+.letter-content {
+  padding: 40px;
+  text-align: center;
+  font-size: 1.5rem;
+  line-height: 2.2rem;
+  color: #4a2e1b;
+}
+
+/* Animation pháo hoa tim */
+canvas {
+  position: fixed;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  pointer-events: none;
+  z-index: 5;
+}
+</style>
+</head>
+<body>
+
+<!-- Tim rơi -->
+<script>
+function createHeart() {
+  const heart = document.createElement('div');
+  heart.className = 'heart';
+  heart.textContent = '❤';
+  heart.style.left = Math.random() * 100 + 'vw';
+  heart.style.fontSize = Math.random() * 20 + 10 + 'px';
+  heart.style.animationDuration = Math.random() * 4 + 6 + 's';
+  document.body.appendChild(heart);
+  setTimeout(() => heart.remove(), 10000);
+}
+setInterval(createHeart, 400);
+</script>
+
+<div class="envelope-container" id="envelope-container">
+  <div class="envelope" id="envelope"></div>
+  <div class="seal"></div>
+</div>
+
+<div class="letter" id="letter">
+  <div class="letter-content">
+    <p>🎂 Chúc mừng sinh nhật babi Thmuoi nhé =)))</p>
+    <p>Năm nay xin slot chúc cuối để nhường slot đầu cho các azai khác on top thoi hẹ hẹ :3</p>
+    <p>Btw mong em luôn có những ngày bình yên và hạnh phúc bên bb và người thân(thương) nha! ^^</p>
+  </div>
+</div>
+
+<!-- Canvas pháo hoa -->
+<canvas id="fireworks"></canvas>
+
+<!-- Nhạc YouTube ẩn -->
+<div id="player" style="display:none;"></div>
+
+<script>
+// Phong bì mở
+const envelopeContainer = document.getElementById('envelope-container');
+const envelope = document.getElementById('envelope');
+const letter = document.getElementById('letter');
+let opened = false;
+
+envelopeContainer.addEventListener('click', () => {
+  if (opened) return;
+  opened = true;
+  envelope.style.opacity = '0';
+  letter.classList.add('open');
+  playMusic();
+  launchFireworks();
+});
+
+// Pháo hoa tim
+const canvas = document.getElementById('fireworks');
+const ctx = canvas.getContext('2d');
+canvas.width = innerWidth;
+canvas.height = innerHeight;
+window.addEventListener('resize', () => {
+  canvas.width = innerWidth;
+  canvas.height = innerHeight;
+});
+function launchFireworks() {
+  for (let i = 0; i < 20; i++) {
+    createParticle();
+  }
+}
+function createParticle() {
+  let x = canvas.width / 2;
+  let y = canvas.height / 2;
+  let vx = (Math.random() - 0.5) * 6;
+  let vy = (Math.random() - 0.5) * 6;
+  let life = 120;
+  let size = 20;
+  const color = `hsl(${Math.random()*360}, 70%, 60%)`;
+  const heart = new Path2D('M10,30 A10,10 0,0,1,30,30 A10,10 0,0,1,50,30 Q50,50,30,70 Q10,50,10,30 Z');
+  const p = {x,y,vx,vy,life,size,color,heart};
+  particles.push(p);
+}
+let particles = [];
+function drawParticles() {
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  particles.forEach((p,i)=>{
+    ctx.save();
+    ctx.translate(p.x,p.y);
+    ctx.scale(p.size/60,p.size/60);
+    ctx.fillStyle = p.color;
+    ctx.fill(p.heart);
+    ctx.restore();
+    p.x += p.vx;
+    p.y += p.vy;
+    p.vy += 0.05;
+    p.life--;
+    if(p.life<=0) particles.splice(i,1);
+  });
+  requestAnimationFrame(drawParticles);
+}
+drawParticles();
+
+// Nhạc YouTube loop
+let player;
+function onYouTubeIframeAPIReady() {
+  player = new YT.Player('player', {
+    videoId: 'RSFeBXvcUeKf', // mã bài của O.lew
+    playerVars: {
+      autoplay: 0,
+      loop: 1,
+      playlist: 'RSFeBXvcUeKf'
+    },
+    events: {
+      'onReady': () => {}
+    }
+  });
+}
+function playMusic(){
+  if(player && player.playVideo){
+    player.playVideo();
+  }
+}
+
+// load YouTube API
+const tag = document.createElement('script');
+tag.src = "https://www.youtube.com/iframe_api";
+document.body.appendChild(tag);
+</script>
+</body>
+</html>
